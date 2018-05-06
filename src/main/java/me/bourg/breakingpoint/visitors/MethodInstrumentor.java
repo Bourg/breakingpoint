@@ -1,6 +1,5 @@
 package me.bourg.breakingpoint.visitors;
 
-import me.bourg.breakingpoint.sink.InstrumentationSink;
 import me.bourg.breakingpoint.util.Util;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -24,27 +23,17 @@ public class MethodInstrumentor extends MethodVisitor {
     // CALL / RETURN HOOKS AND HELPERS                                       //
     ///////////////////////////////////////////////////////////////////////////
 
-    /*@Override
-    public void visitInsn(int opc) {
-        if (Util.shouldInstrumentInside(qualifiedClassName) &&
-                Util.isReturnOpcode(opc)) {
-            injectLogReturn(getQualifiedName());
-        }
-
-        mv.visitInsn(opc);
-    }*/
-
     @Override
     public void visitMethodInsn(int opc, String owner, String name, String desc, boolean isInterface) {
         String calleeExternalName = Util.externalizeClassName(owner) + "." + name;
 
-        if (Util.shouldInstrumentInside(qualifiedClassName)) {
+        if (shouldInstrumentThis()) {
             injectLogCall(calleeExternalName);
         }
 
         mv.visitMethodInsn(opc, owner, name, desc, isInterface);
 
-        if (Util.shouldInstrumentInside(qualifiedClassName)) {
+        if (shouldInstrumentThis()) {
             injectLogReturn(calleeExternalName);
         }
     }
@@ -76,13 +65,13 @@ public class MethodInstrumentor extends MethodVisitor {
 
     @Override
     public void visitJumpInsn(int opc, Label lbl) {
-        if (Util.shouldInstrumentInside(qualifiedClassName)) {
+        if (shouldInstrumentThis()) {
             injectLogPreBranching(branchNumber++);
         }
 
         mv.visitJumpInsn(opc, lbl);
 
-        if (Util.shouldInstrumentInside(qualifiedClassName)) {
+        if (shouldInstrumentThis()) {
             injectLogDidNotBranch();
         }
     }
@@ -112,5 +101,9 @@ public class MethodInstrumentor extends MethodVisitor {
 
     private String getQualifiedName() {
         return qualifiedClassName + "." + methodName;
+    }
+
+    private boolean shouldInstrumentThis() {
+        return !Util.isOracleInternal(qualifiedClassName);
     }
 }

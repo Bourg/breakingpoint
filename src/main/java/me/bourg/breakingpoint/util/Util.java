@@ -14,7 +14,7 @@ public class Util {
             "jdk", "sun", "java"
     };
 
-    public static boolean shouldInstrumentInside(String internalName) {
+    public static boolean isOracleInternal(String internalName) {
         return Arrays.stream(internals)
                 .flatMap(p -> Stream.of(p + '.', p + '/'))
                 .noneMatch(internalName::startsWith);
