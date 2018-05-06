@@ -17,7 +17,7 @@ public class Util {
     public static boolean isOracleInternal(String internalName) {
         return Arrays.stream(internals)
                 .flatMap(p -> Stream.of(p + '.', p + '/'))
-                .noneMatch(internalName::startsWith);
+                .anyMatch(internalName::startsWith);
     }
 
     private static int[] returnOps = new int[]{
