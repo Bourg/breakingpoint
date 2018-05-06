@@ -1,4 +1,4 @@
-package me.bourg.breakingpoint;
+package me.bourg.breakingpoint.core;
 
 import me.bourg.breakingpoint.sink.InstrumentationSink;
 

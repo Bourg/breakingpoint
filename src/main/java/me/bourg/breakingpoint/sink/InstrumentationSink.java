@@ -33,7 +33,9 @@ public class InstrumentationSink {
     }
 
     private static void doOutput(String output) {
-        System.out.println("<<BREAKING_POINT>>: " + output);
+        System.out.printf("<<BREAKING_POINT>> [%d]: %s\n",
+                Thread.currentThread().getId(),
+                output);
     }
 
     private static void assertIsTesting(boolean shouldBeTesting, String error) {

@@ -1,4 +1,4 @@
-package me.bourg.breakingpoint;
+package me.bourg.breakingpoint.core;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -16,7 +16,7 @@ public class Transformer implements ClassFileTransformer {
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-        new ClassReader(classfileBuffer).accept(new MainInstrumentor(cw), 0);
+        new ClassReader(classfileBuffer).accept(new ClassInstrumentor(cw), 0);
 
         return cw.toByteArray();
     }

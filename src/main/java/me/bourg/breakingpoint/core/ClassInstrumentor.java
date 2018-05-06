@@ -1,16 +1,17 @@
-package me.bourg.breakingpoint;
+package me.bourg.breakingpoint.core;
 
 
-import me.bourg.breakingpoint.method.CallReturnInstrumentor;
+import me.bourg.breakingpoint.util.Util;
+import me.bourg.breakingpoint.method.MethodInstrumentor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 import static org.objectweb.asm.Opcodes.ASM6;
 
-public class MainInstrumentor extends ClassVisitor {
+public class ClassInstrumentor extends ClassVisitor {
     private String qualifiedClassName;
 
-    public MainInstrumentor(ClassVisitor w) {
+    public ClassInstrumentor(ClassVisitor w) {
         super(ASM6, w);
     }
 
@@ -28,7 +29,7 @@ public class MainInstrumentor extends ClassVisitor {
         MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
 
         if (mv != null) {
-            return new CallReturnInstrumentor(qualifiedClassName, name, mv);
+            return new MethodInstrumentor(qualifiedClassName, name, mv);
         } else {
             return mv;
         }

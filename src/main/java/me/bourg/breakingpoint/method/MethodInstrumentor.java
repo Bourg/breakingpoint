@@ -1,24 +1,40 @@
 package me.bourg.breakingpoint.method;
 
-import me.bourg.breakingpoint.Util;
+import me.bourg.breakingpoint.util.Util;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
 import static org.objectweb.asm.Opcodes.ASM6;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
-public class CallReturnInstrumentor extends MethodVisitor {
+public class MethodInstrumentor extends MethodVisitor {
     private final String qualifiedClassName, methodName;
 
     private static final Type STRING_TYPE = Type.getObjectType("java/lang/String");
 
-    public CallReturnInstrumentor(String qualifiedClassName, String methodName, MethodVisitor mv) {
+    public MethodInstrumentor(String internalClassName, String methodName, MethodVisitor mv) {
         super(ASM6, mv);
 
-        this.qualifiedClassName = qualifiedClassName;
+        this.qualifiedClassName = Util.externalizeClassName(internalClassName);
         this.methodName = methodName;
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // CALL / RETURN HOOKS AND HELPERS                                       //
+    ///////////////////////////////////////////////////////////////////////////
+
+    /*@Override
+    public void visitInsn(int opc) {
+        if (Util.shouldInstrumentInside(qualifiedClassName) &&
+                Util.isReturnOpcode(opc)) {
+            injectLogReturn(getQualifiedName());
+        }
+
+        mv.visitInsn(opc);
+    }*/
+
+    @Override
     public void visitMethodInsn(int opc, String owner, String name, String desc, boolean isInterface) {
         String calleeExternalName = Util.externalizeClassName(owner) + "." + name;
 
@@ -28,19 +44,9 @@ public class CallReturnInstrumentor extends MethodVisitor {
 
         mv.visitMethodInsn(opc, owner, name, desc, isInterface);
 
-        if (Util.shouldInstrumentInside(qualifiedClassName) &&
-                !Util.shouldInstrumentInside(owner)) {
+        if (Util.shouldInstrumentInside(qualifiedClassName)) {
             injectLogReturn(calleeExternalName);
         }
-    }
-
-    public void visitInsn(int opc) {
-        if (Util.shouldInstrumentInside(qualifiedClassName) &&
-                Util.isReturnOpcode(opc)) {
-            injectLogReturn(getQualifiedName());
-        }
-
-        mv.visitInsn(opc);
     }
 
     private void injectLogCall(String calleeExternalName) {
@@ -61,6 +67,19 @@ public class CallReturnInstrumentor extends MethodVisitor {
                 Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE),
                 false);
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // BRANCHING HOOKS AND HELPERS                                           //
+    ///////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void visitJumpInsn(int opc, Label lbl) {
+        mv.visitJumpInsn(opc, lbl);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // GENERAL UTILTIY                                                       //
+    ///////////////////////////////////////////////////////////////////////////
 
     private String getQualifiedName() {
         return qualifiedClassName + "." + methodName;

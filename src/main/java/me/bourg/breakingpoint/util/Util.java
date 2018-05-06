@@ -1,4 +1,4 @@
-package me.bourg.breakingpoint;
+package me.bourg.breakingpoint.util;
 
 import org.objectweb.asm.Opcodes;
 
@@ -10,12 +10,14 @@ public class Util {
         return internalName.replace('/', '.');
     }
 
-    private static String[] internals = new String[]{"jdk", "sun", "java"};
+    private static String[] internals = new String[]{
+            "jdk", "sun", "java"
+    };
 
     public static boolean shouldInstrumentInside(String internalName) {
         return Arrays.stream(internals)
                 .flatMap(p -> Stream.of(p + '.', p + '/'))
-                .noneMatch(p -> internalName.startsWith(p));
+                .noneMatch(internalName::startsWith);
     }
 
     private static int[] returnOps = new int[]{
