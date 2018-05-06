@@ -22,28 +22,47 @@ public class CallReturnInstrumentor extends MethodVisitor {
     public void visitMethodInsn(int opc, String owner, String name, String desc, boolean isInterface) {
         String calleeExternalName = Util.externalizeClassName(owner) + "." + name;
 
-        if (!belongsToInternalClass()) {
-            System.out.println("Instrumenting call to " + calleeExternalName + " from " + getQualifiedName());
-
-            mv.visitLdcInsn(getQualifiedName());
-            mv.visitLdcInsn(calleeExternalName);
-            mv.visitMethodInsn(INVOKESTATIC,
-                    "me/bourg/breakingpoint/sink/InstrumentationSink",
-                    "logCall",
-                    Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, STRING_TYPE),
-                    false);
+        if (Util.shouldInstrumentInside(qualifiedClassName)) {
+            injectLogCall(calleeExternalName);
         }
 
         mv.visitMethodInsn(opc, owner, name, desc, isInterface);
+
+        if (Util.shouldInstrumentInside(qualifiedClassName) &&
+                !Util.shouldInstrumentInside(owner)) {
+            injectLogReturn(calleeExternalName);
+        }
+    }
+
+    public void visitInsn(int opc) {
+        if (Util.shouldInstrumentInside(qualifiedClassName) &&
+                Util.isReturnOpcode(opc)) {
+            injectLogReturn(getQualifiedName());
+        }
+
+        mv.visitInsn(opc);
+    }
+
+    private void injectLogCall(String calleeExternalName) {
+        mv.visitLdcInsn(getQualifiedName());
+        mv.visitLdcInsn(calleeExternalName);
+        mv.visitMethodInsn(INVOKESTATIC,
+                "me/bourg/breakingpoint/sink/InstrumentationSink",
+                "logCall",
+                Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, STRING_TYPE),
+                false);
+    }
+
+    private void injectLogReturn(String returnerExternalName) {
+        mv.visitLdcInsn(returnerExternalName);
+        mv.visitMethodInsn(INVOKESTATIC,
+                "me/bourg/breakingpoint/sink/InstrumentationSink",
+                "logReturn",
+                Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE),
+                false);
     }
 
     private String getQualifiedName() {
         return qualifiedClassName + "." + methodName;
-    }
-
-    private boolean belongsToInternalClass() {
-        return qualifiedClassName.startsWith("java.") ||
-                qualifiedClassName.startsWith("sun.") ||
-                qualifiedClassName.startsWith("jdk.");
     }
 }
