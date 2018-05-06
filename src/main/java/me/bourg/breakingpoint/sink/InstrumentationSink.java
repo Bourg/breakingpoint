@@ -23,7 +23,7 @@ public class InstrumentationSink {
     public static void logCall(String caller, String callee) {
         assertIsTesting("Can only log calls if testing is enabled");
 
-        doOutput("--> " + caller + callee);
+        doOutput("--> " + caller + " " + callee);
     }
 
     public static void logReturn(String from) {
