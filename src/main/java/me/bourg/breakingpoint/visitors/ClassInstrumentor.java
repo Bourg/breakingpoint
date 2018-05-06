@@ -1,8 +1,7 @@
-package me.bourg.breakingpoint.core;
+package me.bourg.breakingpoint.visitors;
 
 
 import me.bourg.breakingpoint.util.Util;
-import me.bourg.breakingpoint.method.MethodInstrumentor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 

@@ -23,7 +23,7 @@ public class InstrumentationSink {
     public static void logCall(String caller, String callee) {
         assertIsTesting("Can only log calls if testing is enabled");
 
-        doOutput(caller + " --> " + callee);
+        doOutput("--> " + caller + callee);
     }
 
     public static void logReturn(String from) {
@@ -32,8 +32,20 @@ public class InstrumentationSink {
         doOutput("<-- " + from);
     }
 
+    public static void logPreBranching(String method, int branchNumber) {
+        assertIsTesting("Can only log branches if testing is enabled");
+
+        doOutput(String.format("<-> %s branch %d?", method, branchNumber));
+    }
+
+    public static void logDidNotBranch() {
+        assertIsTesting("Can only log branch taken if testing is enabled");
+
+        doOutput(String.format("\t\tDid not branch!"));
+    }
+
     private static void doOutput(String output) {
-        System.out.printf("<<BREAKING_POINT>> [%d]: %s\n",
+        System.out.printf("<<BREAKING_POINT>> [THREAD %d]: %s\n",
                 Thread.currentThread().getId(),
                 output);
     }

@@ -1,5 +1,6 @@
 package me.bourg.breakingpoint.core;
 
+import me.bourg.breakingpoint.visitors.ClassInstrumentor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 

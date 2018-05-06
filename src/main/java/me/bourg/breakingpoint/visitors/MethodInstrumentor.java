@@ -1,12 +1,12 @@
-package me.bourg.breakingpoint.method;
+package me.bourg.breakingpoint.visitors;
 
+import me.bourg.breakingpoint.sink.InstrumentationSink;
 import me.bourg.breakingpoint.util.Util;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-import static org.objectweb.asm.Opcodes.ASM6;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.*;
 
 public class MethodInstrumentor extends MethodVisitor {
     private final String qualifiedClassName, methodName;
@@ -72,9 +72,38 @@ public class MethodInstrumentor extends MethodVisitor {
     // BRANCHING HOOKS AND HELPERS                                           //
     ///////////////////////////////////////////////////////////////////////////
 
+    private short branchNumber = 1;
+
     @Override
     public void visitJumpInsn(int opc, Label lbl) {
+        if (Util.shouldInstrumentInside(qualifiedClassName)) {
+            injectLogPreBranching(branchNumber++);
+        }
+
         mv.visitJumpInsn(opc, lbl);
+
+        if (Util.shouldInstrumentInside(qualifiedClassName)) {
+            injectLogDidNotBranch();
+        }
+    }
+
+    private void injectLogPreBranching(int branchNumber) {
+        mv.visitLdcInsn(getQualifiedName());
+        mv.visitIntInsn(SIPUSH, branchNumber);
+
+        mv.visitMethodInsn(INVOKESTATIC,
+                "me/bourg/breakingpoint/sink/InstrumentationSink",
+                "logPreBranching",
+                Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, Type.INT_TYPE),
+                false);
+    }
+
+    private void injectLogDidNotBranch() {
+        mv.visitMethodInsn(INVOKESTATIC,
+                "me/bourg/breakingpoint/sink/InstrumentationSink",
+                "logDidNotBranch",
+                Type.getMethodDescriptor(Type.VOID_TYPE),
+                false);
     }
 
     ///////////////////////////////////////////////////////////////////////////
