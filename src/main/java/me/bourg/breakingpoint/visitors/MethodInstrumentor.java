@@ -61,7 +61,7 @@ public class MethodInstrumentor extends MethodVisitor {
     // BRANCHING HOOKS AND HELPERS                                           //
     ///////////////////////////////////////////////////////////////////////////
 
-    private short branchNumber = 1;
+    private short branchNumber = 0;
 
     @Override
     public void visitJumpInsn(int opc, Label lbl) {
